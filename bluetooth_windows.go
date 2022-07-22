@@ -11,8 +11,6 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-// NOTE: https://github.com/golang/go/issues/52325
-
 var _ CommunicationDescriptor = &bluetooth{}
 
 type bluetooth struct {
@@ -21,49 +19,30 @@ type bluetooth struct {
 	Addr string
 }
 
-// type RawSockaddrRFCOMM struct {
-// 	Family  uint16
-// 	Bdaddr  [6]uint8
-// 	Channel uint8
-// 	_       [1]byte
-// }
-
-// type SockaddrRFCOMM struct {
-// 	// Addr represents a bluetooth address, byte ordering is little-endian.
-// 	Addr [6]uint8
-
-// 	// Channel is a designated bluetooth channel, only 1-30 are available for use.
-// 	// Since Linux 2.6.7 and further zero value is the first available channel.
-// 	Channel uint8
-
-// 	raw RawSockaddrRFCOMM
-// }
-
-// func (sa *SockaddrRFCOMM) sockaddr() (unsafe.Pointer, int32, error) {
-// 	sa.raw.Family = 32
-// 	sa.raw.Channel = sa.Channel
-// 	sa.raw.Bdaddr = sa.Addr
-// 	return unsafe.Pointer(&sa.raw), int32(unsafe.Sizeof(sa.raw)), nil
-// }
-
 type SockaddrBth struct {
 	family         uint16
-	BtAddr         [6]byte
+	BtAddr         uint64
 	ServiceClassId windows.GUID
-	Port           uint64
+	Port           uint32
 }
 
 func (sa *SockaddrBth) sockaddr() (unsafe.Pointer, int32, error) {
 	// if sa.Port < 0 || sa.Port > 31 {
 	// 	return nil, 0, windows.EINVAL
 	// }
-	sa.family = 32
+	sa.family = windows.AF_BTH
 	p := (*[2]byte)(unsafe.Pointer(&sa.Port))
 	p[0] = byte(sa.Port >> 8)
 	p[1] = byte(sa.Port)
+	fmt.Println(" --- SockaddrBth: ", unsafe.Sizeof(SockaddrBth{}))
+	fmt.Println(" --- family: ", unsafe.Sizeof(*&sa.family))
+	fmt.Println(" --- BtAddr: ", unsafe.Sizeof(*&sa.BtAddr))
+	fmt.Println(" --- ServiceClassId: ", unsafe.Sizeof(*&sa.ServiceClassId))
+	fmt.Println(" --- Port: ", unsafe.Sizeof(*&sa.Port))
 	fmt.Println(" --- SizeOf: ", unsafe.Sizeof(*sa))
 	fmt.Println(" --- SizeOf int32: ", int32(unsafe.Sizeof(*sa)))
-	return unsafe.Pointer(sa), int32(unsafe.Sizeof(*sa)), nil
+	upsa := unsafe.Pointer(sa)
+	return upsa, int32(unsafe.Sizeof(*sa)), nil
 }
 
 func Bluetooth(addr string) (CommunicationDescriptor, error) {
@@ -74,7 +53,7 @@ func Bluetooth(addr string) (CommunicationDescriptor, error) {
 		return nil, e
 	}
 
-	fd, err := Socket(windows.AF_BTH, windows.SOCK_STREAM, windows.BTHPROTO_RFCOMM)
+	fd, err := windows.Socket(windows.AF_BTH, windows.SOCK_STREAM, windows.BTHPROTO_RFCOMM)
 	if err != nil {
 		logging.Error("windows.Socket")
 		return nil, err
@@ -85,26 +64,29 @@ func Bluetooth(addr string) (CommunicationDescriptor, error) {
 	// 	return nil, err
 	// }
 	//logging.Debug("unix socket returned a file descriptor: ", fd)
-	g, err := windows.GUIDFromString("{49535343-FE7D-4AE5-8FA9-9FAFD205E455}")
+	//g, err := windows.GUIDFromString("{49535343-FE7D-4AE5-8FA9-9FAFD205E455}")
 	if err != nil {
 		logging.Error("windows.GUIDFromString")
 		return nil, err
 	}
 	s := SockaddrBth{
-		BtAddr:         str2ba(addr),
-		ServiceClassId: g,
-		// Port:           6,
+		BtAddr: 0x54812D7FCDD2,
+		//ServiceClassId: g,
+		Port: 6,
 	}
+	fmt.Println("connecting....")
 	if err := Connect(fd, s); err != nil {
 		logging.Error("Connect")
 		return nil, err
 	}
+	fmt.Println("connected")
 	logging.Debug("unix socket linked with an RFCOMM")
 
 	return &bluetooth{
 		//FileDescriptor: fd,
 		//SocketAddr:     socketAddr,
-		Addr: addr,
+		Handle: fd,
+		Addr:   addr,
 	}, nil
 }
 
@@ -120,12 +102,16 @@ func (b *bluetooth) Read(dataLen int) (int, []byte, error) {
 }
 
 func (b *bluetooth) Write(d []byte) error {
-	logging.Debug(fmt.Sprintf(">>>>>>>>>>>> protoComm.Write: %v", d))
-	_, err := windows.Write(b.Handle, d)
-	if err != nil {
-		return err
+	fmt.Printf(">>>>>>>>>>>> protoComm.Write: %v\n", d)
+	buf := &windows.WSABuf{
+		Len: uint32(len(d)),
 	}
-	return nil
+	if len(d) > 0 {
+		buf.Buf = &d[0]
+	}
+	var numOfBytes uint32
+	err := windows.WSASend(b.Handle, buf, 1, &numOfBytes, 0, nil, nil)
+	return err
 }
 
 func (b bluetooth) Close() error {
@@ -150,11 +136,15 @@ func str2ba(addr string) [6]byte {
 // ---------------------------------------------------------------------------
 
 func Connect(fd windows.Handle, sa SockaddrBth) (err error) {
-	ptr, n, err := sa.sockaddr()
-	if err != nil {
-		return err
-	}
-	return connect(fd, ptr, n)
+	// ptr, n, err := sa.sockaddr()
+	// if err != nil {
+	// 	return err
+	// }
+
+	// 20 00 d2 cd 7f 2d 81 54 00 00 7f 21 96 00 00 00 54 00 00 00 81 00 00 00 2d 00 06 00 00 00
+	ptr := unsafe.Pointer(&[30]byte{0x20, 0x00, 0xd2, 0xcd, 0x7f, 0x2d, 0x81, 0x54, 0x00, 0x00, 0x7f, 0x21, 0x96, 0x00, 0x00, 0x00, 0x54,
+		0x00, 0x00, 0x00, 0x81, 0x00, 0x00, 0x00, 0x2d, 0x00, 0x06, 0x00, 0x00, 0x00})
+	return connectOg(fd, ptr, 30)
 }
 
 const socket_error = uintptr(^uint32(0))
@@ -162,18 +152,13 @@ const socket_error = uintptr(^uint32(0))
 var (
 	modws2_32   = windows.NewLazySystemDLL("ws2_32.dll")
 	procconnect = modws2_32.NewProc("connect")
-	procsocket  = modws2_32.NewProc("socket")
+	procsend    = modws2_32.NewProc("send")
 )
 
-func connect(s windows.Handle, name unsafe.Pointer, namelen int32) (err error) {
-	fmt.Println(procconnect.Addr())
-	fmt.Println(procconnect.Name)
-	//r1, _, e1 := syscall.Syscall(procconnect.Addr(), 3, uintptr(s), uintptr(name), uintptr(namelen))
-	r1, _, e1 := procconnect.Call(uintptr(s), uintptr(name), uintptr(namelen))
-	//r1, _, e1 := syscall.SyscallN(procconnect.Addr(), 3, uintptr(s), uintptr(name), uintptr(namelen))
+func connectOg(s windows.Handle, name unsafe.Pointer, namelen int32) (err error) {
+	r1, _, e1 := syscall.Syscall(procconnect.Addr(), 3, uintptr(s), uintptr(name), uintptr(namelen))
 	if r1 == socket_error {
-		logging.Error(" syscall.Syscall")
-		err = e1
+		err = errnoErr(e1)
 	}
 	return
 }
@@ -199,19 +184,18 @@ func errnoErr(e syscall.Errno) error {
 	return e
 }
 
-func Socket(domain, typ, proto int) (fd windows.Handle, err error) {
-	// if domain == AF_INET6 && SocketDisableIPv6 {
-	// 	return InvalidHandle, syscall.EAFNOSUPPORT
-	// }
-	return socket(int32(domain), int32(typ), int32(proto))
+func Send(fd windows.Handle, p []byte, flags int) (err error) {
+	return send(fd, p, int32(flags))
 }
 
-func socket(af int32, typ int32, protocol int32) (handle windows.Handle, err error) {
-	r0, _, e1 := procsocket.Call(uintptr(af), uintptr(typ), uintptr(protocol))
-	//r0, _, e1 := syscall.Syscall(procsocket.Addr(), 3, uintptr(af), uintptr(typ), uintptr(protocol))
-	handle = windows.Handle(r0)
-	if handle == InvalidHandle {
-		logging.Error(e1)
+func send(s windows.Handle, buf []byte, flags int32) (err error) {
+	var _p0 *byte
+	if len(buf) > 0 {
+		_p0 = &buf[0]
+	}
+	r1, _, e1 := syscall.SyscallN(procsend.Addr(), 4, uintptr(s), uintptr(unsafe.Pointer(_p0)), uintptr(len(buf)), uintptr(flags), 0, 0)
+	if r1 == socket_error {
+		err = errnoErr(e1)
 	}
 	return
 }
