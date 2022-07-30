@@ -84,7 +84,7 @@ void analyze_query_set_memory_layout(PWSAQUERYSET query_set)
     // TODO somehow read the value of query_set allocation
     // HANDLE hProcess = GetCurrentProcess();
     // ReadProcessMemory(hProcess, (LPCVOID)query_set, pBuf, m_ModuleBaseSize, &nBytes);
-    
+
     analyze_memory_layout("Query set -> dwSize", (char *)&query_set->dwSize, sizeof(query_set->dwSize));
     analyze_memory_layout("Query set -> lpszServiceInstanceName", (char *)&query_set->lpszServiceInstanceName, sizeof(query_set->lpszServiceInstanceName));
     analyze_memory_layout("Query set -> lpServiceClassId", (char *)&query_set->lpServiceClassId, sizeof(query_set->lpServiceClassId));
@@ -102,18 +102,89 @@ void analyze_query_set_memory_layout(PWSAQUERYSET query_set)
     analyze_memory_layout("Query set -> lpBlob", (char *)&query_set->lpBlob, sizeof(query_set->lpBlob));
 }
 
+void lookup_service_next_error(PWSAQUERYSET *query_set)
+{
+    int last_error = WSAGetLastError();
+    if (last_error == WSA_E_NO_MORE)
+    {
+        printf("[INFO] No more devices.\n");
+    }
+    else if (last_error == WSAEFAULT)
+    {
+        HeapFree(GetProcessHeap(), 0, query_set);
+        query_set = NULL;
+        printf("[ERROR] The system detected an invalid pointer address in attempting to use a pointer argument of a call.\n");
+    }
+    else
+    {
+        printf("[CRITICAL] WSALookupServiceNext() failed with error code %d\n", last_error);
+    }
+}
+
+char *get_device_name(PWSAQUERYSET query_set)
+{
+    int device_name_len = wcslen(query_set->lpszServiceInstanceName) + 1;
+    char *device = new char[device_name_len];
+    wcstombs(device, query_set->lpszServiceInstanceName, device_name_len);
+    return device;
+}
+
+void discover_iterator(HANDLE lookup, PWSAQUERYSET query_set)
+{
+    ULONG flags = get_begin_flags(false);
+    bool continue_lookup = true;
+    int counter = 0;
+
+    while (continue_lookup)
+    {
+        printf("Iteration: %d", counter);
+        counter++;
+
+        ULONG query_set_size = get_query_set_size();
+        int next_result = WSALookupServiceNext(lookup, flags, &query_set_size, query_set);
+
+        if (next_result == NO_ERROR)
+        {
+            printf("lofasz");
+            char *device_name = get_device_name(query_set);
+            if (strstr(device_name, "D135"))
+            {
+                BTH_ADDR *bluetooth_address;
+                CopyMemory(
+                    bluetooth_address,
+                    &((PSOCKADDR_BTH)query_set->lpcsaBuffer->RemoteAddr.lpSockaddr)->btAddr,
+                    sizeof(*bluetooth_address));
+                printf("[INFO] Address found: %X\n", *bluetooth_address);
+                continue_lookup = false;
+            }
+        }
+        else
+        {
+            lookup_service_next_error(&query_set);
+            continue_lookup = false;
+        }
+    }
+}
+
 void discover()
 {
     ULONG flags = get_begin_flags(false);
     PWSAQUERYSET query_set = get_query_set();
     query_set->dwNameSpace = NS_BTH;
     query_set->dwSize = get_query_set_size();
+    analyze_query_set_memory_layout(query_set);
+
+    HANDLE lookup = 0;
+    int begin_result = WSALookupServiceBegin(query_set, flags, &lookup);
+
+    discover_iterator(lookup, query_set);
+
+    WSALookupServiceEnd(lookup);
 
     // WSAQUERYSET qs; TODO
     // qs.dwNameSpace = NS_BTH;
     // qs.dwSize = get_query_set_size();
     // analyze_query_set_memory_layout(qs);
-    analyze_query_set_memory_layout(query_set);
 }
 
 int _cdecl main(int argc, char *argv[])
