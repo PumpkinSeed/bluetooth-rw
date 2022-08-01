@@ -14,12 +14,6 @@
 #include <unistd.h>
 #endif
 
-struct device
-{
-    char *name;
-    char *address;
-};
-
 void startup()
 {
     WSADATA wsa_data = {0};
@@ -157,13 +151,12 @@ void ba2str(const BTH_ADDR *ba, char *result)
     memcpy(result, data, 17);
 }
 
-void scanner_iterator(HANDLE lookup, PWSAQUERYSET query_set)
+void discover_iterator(HANDLE lookup, PWSAQUERYSET query_set)
 {
     ULONG flags = get_begin_flags(true);
     ULONG query_set_size = get_query_set_size();
     // Set the deadline to 5 sec
     time_t deadline = time(0) + 5;
-    device devices[] = {0};
 
     bool continue_lookup = true;
     BTH_ADDR *bluetooth_address;
@@ -184,10 +177,6 @@ void scanner_iterator(HANDLE lookup, PWSAQUERYSET query_set)
             char *device_name = new char[device_name_len];
             wcstombs(device_name, query_set->lpszServiceInstanceName, device_name_len);
             printf("Device: %s\n", device_name);
-            device device_struct = {
-                name : device_name,
-                address : {0},
-            };
 
             LPCSADDR_INFO buffer = query_set->lpcsaBuffer;
             SOCKET_ADDRESS remote_address = buffer->RemoteAddr;
@@ -195,8 +184,7 @@ void scanner_iterator(HANDLE lookup, PWSAQUERYSET query_set)
             BTH_ADDR address = sockaddr->btAddr;
             char result_address[11] = {0};
             ba2str(&address, result_address);
-            device_struct.address = result_address;
-            printf("[INFO] Address found: %s\n", device_struct.address);
+            printf("\taddress: %s\n\n", result_address);
         }
         else
         {
@@ -226,7 +214,7 @@ void scanner_iterator(HANDLE lookup, PWSAQUERYSET query_set)
     }
 }
 
-void scanner()
+void discover()
 {
     ULONG query_set_size = get_query_set_size();
     ULONG flags = get_begin_flags(false);
@@ -234,12 +222,12 @@ void scanner()
     ZeroMemory(query_set, query_set_size);
     query_set->dwNameSpace = NS_BTH;
     query_set->dwSize = query_set_size;
-    analyze_query_set_memory_layout(query_set);
+    //analyze_query_set_memory_layout(query_set);
 
     HANDLE lookup = 0;
     int result = WSALookupServiceBeginW(query_set, flags, &lookup);
 
-    scanner_iterator(lookup, query_set);
+    discover_iterator(lookup, query_set);
 
     // End the lookup service
     WSALookupServiceEnd(lookup);
@@ -248,5 +236,5 @@ void scanner()
 int _cdecl main(int argc, char *argv[])
 {
     startup();
-    scanner();
+    discover();
 }
