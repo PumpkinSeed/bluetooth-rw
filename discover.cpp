@@ -222,7 +222,7 @@ void discover()
     ZeroMemory(query_set, query_set_size);
     query_set->dwNameSpace = NS_BTH;
     query_set->dwSize = query_set_size;
-    //analyze_query_set_memory_layout(query_set);
+    // analyze_query_set_memory_layout(query_set);
 
     HANDLE lookup = 0;
     int result = WSALookupServiceBeginW(query_set, flags, &lookup);
@@ -231,6 +231,13 @@ void discover()
 
     // End the lookup service
     WSALookupServiceEnd(lookup);
+}
+
+void memory_layout_WSAQUERYSET() {
+    WSAQUERYSET qs1 = {0};
+    qs1.dwNameSpace = NS_BTH;
+    qs1.dwSize = get_query_set_size();
+    analyze_memory_layout("Query set 123", (char *)&qs1, sizeof(qs1));
 }
 
 int _cdecl main(int argc, char *argv[])
