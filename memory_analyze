@@ -101,3 +101,65 @@ a8 5b 06 00 c0 00 00 00 // Comment
 b8 5e 06 00 c0 00 00 00 // SaBuffer
 64 00 00 00 00 00 00 00 // OutputFlags
 a8 5e 06 00 c0 00 00 00 // Blob
+
+------------------------------------------
+AFPROTOCOLS
+
+C:
+be 2f 00 00 // iAddressFamily
+43 30 bc 00 // iProtocol
+
+Go:
+be 2f 00 00 // AddressFamily
+43 30 bc 00 // Protocol
+
+-------------------------------------------
+WSAVERSION
+
+C:
+cb d4 12 00 
+01 00 00 00
+
+Go:
+cb d4 12 00 
+01 00 00 00
+
+---------------------------------------------
+CSADDR_INFO
+
+sockaddr:
+C:
+2c 00                                       sa_family
+10 11 12 13 14 15 16 17 18 19 20 21 22 23   sa_data
+
+Go:
+2c 00                                       Family
+10 11 12 13 14 15 16 17 18 19 20 21 22 23   Data
+
+SocketAddress:
+C:
+70 f9 bf a6 a6 00 00 00 lpSockaddr
+0a 00 00 00 00 00 00 00 iSockaddrLength
+
+Go:
+20 ff 05 00 c0 00 00 00 Sockaddr
+0a 00 00 00 00 00 00 00 SockaddrLength
+
+CSADDR_INFO:
+C:
+a0 fc 1f f5 0f 00 00 00 0a 00 00 00 00 00 00 00 LocalAddr
+d0 fc 1f f5 0f 00 00 00 0a 00 00 00 00 00 00 00 RemoteAddr
+2c 01 00 00 iSocketType
+0c 00 00 00 iProtocol
+
+Go:
+f8 5e 05 00 c0 00 00 00 0a 00 00 00 00 00 00 00 LocalAddr
+08 5f 05 00 c0 00 00 00 0a 00 00 00 00 00 00 00 RemoteAddr
+2c 01 00 00 SocketType
+0c 00 00 00 Protocol
+
+--------------------------------------------------
+BLOB
+
+C:
+0a 00 00 00 00 00 00 00 2f f7 3f 8e 7a 00 00 00

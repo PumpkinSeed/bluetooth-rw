@@ -246,6 +246,8 @@ void memory_layout_WSAQUERYSET()
     AFPROTOCOLS proto = {0};
     proto.iAddressFamily = 12222;
     proto.iProtocol = 12333123;
+    //analyze_memory_layout("AFPROTOCOLS", (char *)&proto, sizeof(proto));
+
     qs1.lpafpProtocols = &proto;
 
     // lpszServiceInstanceName
@@ -258,7 +260,8 @@ void memory_layout_WSAQUERYSET()
     // lpVersion
     WSAVERSION version = {0};
     version.dwVersion = 1234123;
-    version.ecHow = WSAECOMPARATOR::COMP_EQUAL;
+    version.ecHow = WSAECOMPARATOR::COMP_NOTLESS;
+    //analyze_memory_layout("WSAVERSION", (char *)&version, sizeof(version));
     qs1.lpVersion = (LPWSAVERSION)&version;
 
     // lpszComment
@@ -286,10 +289,33 @@ void memory_layout_WSAQUERYSET()
     CSADDR_INFO addr_info = {0};
     addr_info.iProtocol = 12;
     addr_info.iSocketType = 300;
-    SOCKET_ADDRESS sock_addr = {0};
-    sock_addr.iSockaddrLength = 10;
+
+    SOCKET_ADDRESS remote_sock_addr = {0};
+    remote_sock_addr.iSockaddrLength = 10;
+    sockaddr sockAddr = {};
+    sockAddr.sa_family = 44;
+    char sa_data[14] = {0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x20, 0x21, 0x22, 0x23};
+    memcpy(&sockAddr.sa_data, sa_data, sizeof(sockAddr.sa_data));
+    //analyze_memory_layout("sockAddr", (char *)&sockAddr, sizeof(sockAddr));
+    remote_sock_addr.lpSockaddr = (LPSOCKADDR)&sockAddr;
+    //analyze_memory_layout("SOCKET_ADDRESS", (char *)&remote_sock_addr, sizeof(remote_sock_addr));
+
+    SOCKET_ADDRESS local_sock_addr = {0};
+    local_sock_addr.iSockaddrLength = 10;
+    sockaddr sockAddr_local = {};
+    sockAddr_local.sa_family = 44;
+    char sa_data_local[14] = {0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x20, 0x21, 0x22, 0x23};
+    memcpy(&sockAddr_local.sa_data, sa_data_local, sizeof(sockAddr_local.sa_data));
+    //analyze_memory_layout("sockAddr", (char *)&sockAddr_local, sizeof(sockAddr_local));
+    local_sock_addr.lpSockaddr = (LPSOCKADDR)&sockAddr_local;
+   // analyze_memory_layout("SOCKET_ADDRESS", (char *)&local_sock_addr, sizeof(local_sock_addr));
+
     // TODO
-    addr_info.RemoteAddr = sock_addr;
+    addr_info.RemoteAddr = remote_sock_addr;
+    addr_info.LocalAddr = local_sock_addr;
+    // analyze_memory_layout("CSADDR_INFO", (char *)&addr_info, sizeof(addr_info));
+    // analyze_memory_layout("CSADDR_INFO.RemoteAddr", (char *)&addr_info.RemoteAddr, sizeof(addr_info.RemoteAddr));
+    // analyze_memory_layout("CSADDR_INFO.LocalAddr", (char *)&addr_info.LocalAddr, sizeof(addr_info.LocalAddr));
     qs1.lpcsaBuffer = (LPCSADDR_INFO)&addr_info;
 
     // dwOutputFlags
@@ -300,30 +326,32 @@ void memory_layout_WSAQUERYSET()
     blob.cbSize = 10;
     BYTE blob_data = 'x';
     blob.pBlobData = (BYTE *)&blob_data;
+
+    analyze_memory_layout("BLOB", (char *)&blob, sizeof(blob));
     qs1.lpBlob = (LPBLOB)&blob;
 
-    analyze_memory_layout("Query set main", (char *)&qs1, sizeof(qs1));
+    // analyze_memory_layout("Query set main", (char *)&qs1, sizeof(qs1));
 
-    analyze_memory_layout("Query set -> dwSize", (char *)&qs1.dwSize, sizeof(qs1.dwSize));
-    analyze_memory_layout("Query set -> lpszServiceInstanceName", (char *)&qs1.lpszServiceInstanceName, sizeof(qs1.lpszServiceInstanceName));
-    analyze_memory_layout("Query set -> lpServiceClassId", (char *)&qs1.lpServiceClassId, sizeof(qs1.lpServiceClassId));
-    analyze_memory_layout("Query set -> lpVersion", (char *)&qs1.lpVersion, sizeof(qs1.lpVersion));
-    analyze_memory_layout("Query set -> lpszComment", (char *)&qs1.lpszComment, sizeof(qs1.lpszComment));
-    analyze_memory_layout("Query set -> dwNameSpace", (char *)&qs1.dwNameSpace, sizeof(qs1.dwNameSpace));
-    analyze_memory_layout("Query set -> lpNSProviderId", (char *)&qs1.lpNSProviderId, sizeof(qs1.lpNSProviderId));
-    analyze_memory_layout("Query set -> lpszContext", (char *)&qs1.lpszContext, sizeof(qs1.lpszContext));
-    analyze_memory_layout("Query set -> dwNumberOfProtocols", (char *)&qs1.dwNumberOfProtocols, sizeof(qs1.dwNumberOfProtocols));
-    analyze_memory_layout("Query set -> lpafpProtocols", (char *)&qs1.lpafpProtocols, sizeof(qs1.lpafpProtocols));
-    analyze_memory_layout("Query set -> lpszQueryString", (char *)&qs1.lpszQueryString, sizeof(qs1.lpszQueryString));
-    analyze_memory_layout("Query set -> dwNumberOfCsAddrs", (char *)&qs1.dwNumberOfCsAddrs, sizeof(qs1.dwNumberOfCsAddrs));
-    analyze_memory_layout("Query set -> lpcsaBuffer", (char *)&qs1.lpcsaBuffer, sizeof(qs1.lpcsaBuffer));
-    analyze_memory_layout("Query set -> dwOutputFlags", (char *)&qs1.dwOutputFlags, sizeof(qs1.dwOutputFlags));
-    analyze_memory_layout("Query set -> lpBlob", (char *)&qs1.lpBlob, sizeof(qs1.lpBlob));
+    // analyze_memory_layout("Query set -> dwSize", (char *)&qs1.dwSize, sizeof(qs1.dwSize));
+    // analyze_memory_layout("Query set -> lpszServiceInstanceName", (char *)&qs1.lpszServiceInstanceName, sizeof(qs1.lpszServiceInstanceName));
+    // analyze_memory_layout("Query set -> lpServiceClassId", (char *)&qs1.lpServiceClassId, sizeof(qs1.lpServiceClassId));
+    // analyze_memory_layout("Query set -> lpVersion", (char *)&qs1.lpVersion, sizeof(qs1.lpVersion));
+    // analyze_memory_layout("Query set -> lpszComment", (char *)&qs1.lpszComment, sizeof(qs1.lpszComment));
+    // analyze_memory_layout("Query set -> dwNameSpace", (char *)&qs1.dwNameSpace, sizeof(qs1.dwNameSpace));
+    // analyze_memory_layout("Query set -> lpNSProviderId", (char *)&qs1.lpNSProviderId, sizeof(qs1.lpNSProviderId));
+    // analyze_memory_layout("Query set -> lpszContext", (char *)&qs1.lpszContext, sizeof(qs1.lpszContext));
+    // analyze_memory_layout("Query set -> dwNumberOfProtocols", (char *)&qs1.dwNumberOfProtocols, sizeof(qs1.dwNumberOfProtocols));
+    // analyze_memory_layout("Query set -> lpafpProtocols", (char *)&qs1.lpafpProtocols, sizeof(qs1.lpafpProtocols));
+    // analyze_memory_layout("Query set -> lpszQueryString", (char *)&qs1.lpszQueryString, sizeof(qs1.lpszQueryString));
+    // analyze_memory_layout("Query set -> dwNumberOfCsAddrs", (char *)&qs1.dwNumberOfCsAddrs, sizeof(qs1.dwNumberOfCsAddrs));
+    // analyze_memory_layout("Query set -> lpcsaBuffer", (char *)&qs1.lpcsaBuffer, sizeof(qs1.lpcsaBuffer));
+    // analyze_memory_layout("Query set -> dwOutputFlags", (char *)&qs1.dwOutputFlags, sizeof(qs1.dwOutputFlags));
+    // analyze_memory_layout("Query set -> lpBlob", (char *)&qs1.lpBlob, sizeof(qs1.lpBlob));
 }
 
 int _cdecl main(int argc, char *argv[])
 {
-    // startup();
-    // discover();
-    memory_layout_WSAQUERYSET();
+    startup();
+    discover();
+    //memory_layout_WSAQUERYSET();
 }

@@ -20,6 +20,89 @@ func TestNameSpace(t *testing.T) {
 	fmt.Print("\n")
 }
 
+func TestAFProtocols(t *testing.T) {
+	const sz = int(unsafe.Sizeof(AFProtocols{}))
+	var af AFProtocols
+	af.AddressFamily = 12222
+	af.Protocol = 12333123
+	var asByteSlice []byte = (*(*[sz]byte)(unsafe.Pointer(&af)))[:]
+	for _, d := range asByteSlice {
+		fmt.Printf("%02x ", d)
+	}
+	fmt.Print("\n")
+}
+
+func TestWSAVersion(t *testing.T) {
+	const sz = int(unsafe.Sizeof(WSAVersion{}))
+	var version WSAVersion
+	version.Version = 1234123
+	version.EnumerationOfComparision = 1
+	var asByteSlice []byte = (*(*[sz]byte)(unsafe.Pointer(&version)))[:]
+	for _, d := range asByteSlice {
+		fmt.Printf("%02x ", d)
+	}
+	fmt.Print("\n")
+}
+
+// Sockaddr
+
+func TestSockaddr(t *testing.T) {
+	const sz = int(unsafe.Sizeof(Sockaddr{}))
+	var sa Sockaddr
+	sa.Family = 44
+	sa.Data = [14]byte{0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x20, 0x21, 0x22, 0x23}
+	var asByteSlice []byte = (*(*[sz]byte)(unsafe.Pointer(&sa)))[:]
+	for _, d := range asByteSlice {
+		fmt.Printf("%02x ", d)
+	}
+	fmt.Print("\n")
+}
+
+func TestSocketAddress(t *testing.T) {
+	const sz = int(unsafe.Sizeof(SocketAddress{}))
+	var sa Sockaddr
+	sa.Family = 44
+	sa.Data = [14]byte{0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x20, 0x21, 0x22, 0x23}
+	var socketAddress SocketAddress
+	socketAddress.Sockaddr = &sa
+	socketAddress.SockaddrLength = 10
+	var asByteSlice []byte = (*(*[sz]byte)(unsafe.Pointer(&socketAddress)))[:]
+	for _, d := range asByteSlice {
+		fmt.Printf("%02x ", d)
+	}
+	fmt.Print("\n")
+}
+
+func TestAddrInfo(t *testing.T) {
+	const sz = int(unsafe.Sizeof(AddrInfo{}))
+	var sa Sockaddr
+	sa.Family = 44
+	sa.Data = [14]byte{0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x20, 0x21, 0x22, 0x23}
+	var socketAddress SocketAddress
+	socketAddress.Sockaddr = &sa
+	socketAddress.SockaddrLength = 10
+
+	var saLocal Sockaddr
+	saLocal.Family = 44
+	saLocal.Data = [14]byte{0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x20, 0x21, 0x22, 0x23}
+	var socketAddressLocal SocketAddress
+	socketAddressLocal.Sockaddr = &saLocal
+	socketAddressLocal.SockaddrLength = 10
+
+	addrInfo := AddrInfo{
+		LocalAddr:  socketAddressLocal,
+		RemoteAddr: socketAddress,
+		SocketType: 300,
+		Protocol:   12,
+	}
+
+	var asByteSlice []byte = (*(*[sz]byte)(unsafe.Pointer(&addrInfo)))[:]
+	for _, d := range asByteSlice {
+		fmt.Printf("%02x ", d)
+	}
+	fmt.Print("\n")
+}
+
 func TestIt(t *testing.T) {
 	const sz = int(unsafe.Sizeof(WSAQUERYSET{}))
 	var querySet WSAQUERYSET
@@ -52,7 +135,7 @@ func TestIt(t *testing.T) {
 		SocketType: 14,
 		Protocol:   300,
 		RemoteAddr: SocketAddress{
-			Sockaddr:       &sockaddr{},
+			Sockaddr:       &Sockaddr{},
 			SockaddrLength: 10,
 		},
 	}
