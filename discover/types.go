@@ -4,10 +4,12 @@ import (
 	"golang.org/x/sys/windows"
 )
 
+type Wchar uint16
+
 // https://docs.microsoft.com/en-us/windows/win32/api/winsock2/ns-winsock2-wsaquerysetw
 type WSAQUERYSET struct {
 	Size                uint32
-	ServiceInstanceName *string
+	ServiceInstanceName CString
 	ServiceClassId      *windows.GUID
 	Version             *WSAVersion
 	Comment             *string
@@ -24,13 +26,13 @@ type WSAQUERYSET struct {
 }
 
 func NewWSAQUERYSET() WSAQUERYSET {
-	var serviceInstanceName string
+	var serviceInstanceName CString
 	var comment string
 	var context string
 	var queryString string
 
 	return WSAQUERYSET{
-		ServiceInstanceName: &serviceInstanceName,
+		ServiceInstanceName: serviceInstanceName,
 		ServiceClassId:      &windows.GUID{},
 		Version:             &WSAVersion{},
 		Comment:             &comment,

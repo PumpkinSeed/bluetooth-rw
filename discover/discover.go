@@ -1,9 +1,13 @@
 package discover
 
+// #include <windows.h>
+import "C"
+
 import (
 	"fmt"
 	"strings"
 	"syscall"
+	"unicode/utf16"
 	"unsafe"
 
 	"golang.org/x/sys/windows"
@@ -76,8 +80,8 @@ func Scan(q WSAQUERYSET) error {
 	// }
 	// var (
 	// 	modws2_32                 = windows.NewLazySystemDLL("ws2_32.dll")
-	// 	procWSALookupServiceBegin = modws2_32.NewProc("WSALookupServiceBeginW")
-	// 	// procWSALookupServiceNext  = modws2_32.NewProc("WSALookupServiceNextW")
+	// 	procWSALookupServiceBegin = modws2_32.NewProc("WSALookupServiceBeginA")
+	// 	// procWSALookupServiceNext  = modws2_32.NewProc("WSALookupServiceNextA")
 	// 	// procWSALookupServiceEnd   = modws2_32.NewProc("WSALookupServiceEnd")
 	// )
 	addr := procWSALookupServiceBegin.Addr()
@@ -99,7 +103,8 @@ func Scan(q WSAQUERYSET) error {
 	for i := 0; i < 5; i++ {
 		var querySet2 = NewWSAQUERYSET()
 		q2 := unsafe.Pointer(&querySet2)
-		r2, _, e2 := syscall.SyscallN(procWSALookupServiceNext.Addr(), uintptr(handle), uintptr(flags), uintptr(unsafe.Pointer(&size)), uintptr(q2))
+		nextAddr := procWSALookupServiceNext.Addr()
+		r2, _, e2 := syscall.SyscallN(nextAddr, uintptr(handle), uintptr(flags), uintptr(unsafe.Pointer(&size)), uintptr(q2))
 		if r2 == socket_error {
 			err = errnoErr(e2)
 			if strings.Contains(err.Error(), "No more results") {
@@ -107,8 +112,11 @@ func Scan(q WSAQUERYSET) error {
 			}
 			fmt.Printf("procWSALookupServiceNext: %s\n", err.Error())
 		}
+
 		if querySet2.ServiceInstanceName != nil {
-			fmt.Printf("%+v\n", *querySet2.ServiceInstanceName)
+			//fmt.Println("not nil")
+			str := CStringToString(querySet2.ServiceInstanceName)
+			fmt.Printf("%s\n", str)
 		}
 
 	}
@@ -121,6 +129,22 @@ func Scan(q WSAQUERYSET) error {
 
 	//windows.Close(handle)
 	return nil
+}
+
+type CString *uint16
+
+func CStringToString(cs CString) (s string) {
+	if cs != nil {
+		us := make([]uint16, 0, 256)
+		for p := uintptr(unsafe.Pointer(cs)); ; p += 2 {
+			u := *(*uint16)(unsafe.Pointer(p))
+			if u == 0 {
+				return string(utf16.Decode(us))
+			}
+			us = append(us, u)
+		}
+	}
+	return ""
 }
 
 func errnoErr(e syscall.Errno) error {

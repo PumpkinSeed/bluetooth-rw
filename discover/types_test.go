@@ -107,8 +107,8 @@ func TestIt(t *testing.T) {
 	const sz = int(unsafe.Sizeof(WSAQUERYSET{}))
 	var querySet WSAQUERYSET
 	querySet.NameSpace = 16
-	serviceInstanceName := "lofasz"
-	querySet.ServiceInstanceName = &serviceInstanceName
+	var serviceInstanceName CString
+	querySet.ServiceInstanceName = serviceInstanceName
 
 	serviceClassId, _ := windows.GUIDFromString("495353-43fe-7d4a-e58f-a99fafd205e4")
 	querySet.ServiceClassId = &serviceClassId
