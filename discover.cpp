@@ -233,15 +233,97 @@ void discover()
     WSALookupServiceEnd(lookup);
 }
 
-void memory_layout_WSAQUERYSET() {
+DEFINE_GUID(g_guidServiceClass, 0x49535343, 0xfe7d, 0x4ae5, 0x8f, 0xa9, 0x9f, 0xaf, 0xd2, 0x05, 0xe4, 0x55);
+DEFINE_GUID(g_guidProviderID, 0x49535343, 0xfe7d, 0x4ae5, 0x8f, 0xa9, 0x9f, 0xaf, 0xd2, 0x05, 0xe4, 0x55);
+
+void memory_layout_WSAQUERYSET()
+{
     WSAQUERYSET qs1 = {0};
     qs1.dwNameSpace = NS_BTH;
     qs1.dwSize = get_query_set_size();
-    analyze_memory_layout("Query set 123", (char *)&qs1, sizeof(qs1));
+
+    // lpafpProtocols
+    AFPROTOCOLS proto = {0};
+    proto.iAddressFamily = 12222;
+    proto.iProtocol = 12333123;
+    qs1.lpafpProtocols = &proto;
+
+    // lpszServiceInstanceName
+    char sin = 'x';
+    qs1.lpszServiceInstanceName = (LPWSTR)&sin;
+
+    // lpServiceClassId
+    qs1.lpServiceClassId = (LPGUID)&g_guidServiceClass;
+
+    // lpVersion
+    WSAVERSION version = {0};
+    version.dwVersion = 1234123;
+    version.ecHow = WSAECOMPARATOR::COMP_EQUAL;
+    qs1.lpVersion = (LPWSAVERSION)&version;
+
+    // lpszComment
+    char comment = 'x';
+    qs1.lpszComment = (LPWSTR)&comment;
+
+    // lpNSProviderId
+    qs1.lpNSProviderId = (LPGUID)&g_guidProviderID;
+
+    // lpszContext
+    char context = 'x';
+    qs1.lpszContext = (LPWSTR)&context;
+
+    // dwNumberOfProtocols
+    qs1.dwNumberOfProtocols = 123412;
+
+    // lpszQueryString
+    char query_string = 'x';
+    qs1.lpszQueryString = (LPWSTR)&query_string;
+
+    // dwNumberOfCsAddrs
+    qs1.dwNumberOfCsAddrs = 12234;
+
+    // lpcsaBuffer
+    CSADDR_INFO addr_info = {0};
+    addr_info.iProtocol = 12;
+    addr_info.iSocketType = 300;
+    SOCKET_ADDRESS sock_addr = {0};
+    sock_addr.iSockaddrLength = 10;
+    // TODO
+    addr_info.RemoteAddr = sock_addr;
+    qs1.lpcsaBuffer = (LPCSADDR_INFO)&addr_info;
+
+    // dwOutputFlags
+    qs1.dwOutputFlags = 123234;
+
+    // lpBlob
+    BLOB blob = {0};
+    blob.cbSize = 10;
+    BYTE blob_data = 'x';
+    blob.pBlobData = (BYTE *)&blob_data;
+    qs1.lpBlob = (LPBLOB)&blob;
+
+    analyze_memory_layout("Query set main", (char *)&qs1, sizeof(qs1));
+
+    analyze_memory_layout("Query set -> dwSize", (char *)&qs1.dwSize, sizeof(qs1.dwSize));
+    analyze_memory_layout("Query set -> lpszServiceInstanceName", (char *)&qs1.lpszServiceInstanceName, sizeof(qs1.lpszServiceInstanceName));
+    analyze_memory_layout("Query set -> lpServiceClassId", (char *)&qs1.lpServiceClassId, sizeof(qs1.lpServiceClassId));
+    analyze_memory_layout("Query set -> lpVersion", (char *)&qs1.lpVersion, sizeof(qs1.lpVersion));
+    analyze_memory_layout("Query set -> lpszComment", (char *)&qs1.lpszComment, sizeof(qs1.lpszComment));
+    analyze_memory_layout("Query set -> dwNameSpace", (char *)&qs1.dwNameSpace, sizeof(qs1.dwNameSpace));
+    analyze_memory_layout("Query set -> lpNSProviderId", (char *)&qs1.lpNSProviderId, sizeof(qs1.lpNSProviderId));
+    analyze_memory_layout("Query set -> lpszContext", (char *)&qs1.lpszContext, sizeof(qs1.lpszContext));
+    analyze_memory_layout("Query set -> dwNumberOfProtocols", (char *)&qs1.dwNumberOfProtocols, sizeof(qs1.dwNumberOfProtocols));
+    analyze_memory_layout("Query set -> lpafpProtocols", (char *)&qs1.lpafpProtocols, sizeof(qs1.lpafpProtocols));
+    analyze_memory_layout("Query set -> lpszQueryString", (char *)&qs1.lpszQueryString, sizeof(qs1.lpszQueryString));
+    analyze_memory_layout("Query set -> dwNumberOfCsAddrs", (char *)&qs1.dwNumberOfCsAddrs, sizeof(qs1.dwNumberOfCsAddrs));
+    analyze_memory_layout("Query set -> lpcsaBuffer", (char *)&qs1.lpcsaBuffer, sizeof(qs1.lpcsaBuffer));
+    analyze_memory_layout("Query set -> dwOutputFlags", (char *)&qs1.dwOutputFlags, sizeof(qs1.dwOutputFlags));
+    analyze_memory_layout("Query set -> lpBlob", (char *)&qs1.lpBlob, sizeof(qs1.lpBlob));
 }
 
 int _cdecl main(int argc, char *argv[])
 {
-    startup();
-    discover();
+    // startup();
+    // discover();
+    memory_layout_WSAQUERYSET();
 }

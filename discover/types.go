@@ -14,14 +14,14 @@ type (
 type WSAQUERYSET struct {
 	Size                uint32
 	ServiceInstanceName *string
-	ServiceClassId      windows.GUID
+	ServiceClassId      *windows.GUID
 	Version             *WSAVersion
 	Comment             *string
 	NameSpace           uint32
-	NSProviderId        windows.GUID
+	NSProviderId        *windows.GUID
 	Context             *string
 	NumberOfProtocols   uint32
-	AfpProtocols        AFProtocols
+	AfpProtocols        *AFProtocols
 	QueryString         *string
 	NumberOfCsAddrs     uint32
 	SaBuffer            *AddrInfo

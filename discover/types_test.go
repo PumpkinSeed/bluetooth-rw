@@ -4,21 +4,62 @@ import (
 	"fmt"
 	"testing"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
 
-func TestIt(t *testing.T) {
+func TestNameSpace(t *testing.T) {
+	const sz = int(unsafe.Sizeof(WSAQUERYSET{}))
+	var querySet WSAQUERYSET
+	querySet.NameSpace = 16
+	querySet.Size = uint32(sz)
+	var asByteSlice []byte = (*(*[sz]byte)(unsafe.Pointer(&querySet)))[:]
+	for _, d := range asByteSlice {
+		fmt.Printf("%02x ", d)
+	}
+	fmt.Print("\n")
+}
 
+func TestIt(t *testing.T) {
 	const sz = int(unsafe.Sizeof(WSAQUERYSET{}))
 	var querySet WSAQUERYSET
 	querySet.NameSpace = 16
 	serviceInstanceName := "lofasz"
 	querySet.ServiceInstanceName = &serviceInstanceName
+
+	serviceClassId, _ := windows.GUIDFromString("495353-43fe-7d4a-e58f-a99fafd205e4")
+	querySet.ServiceClassId = &serviceClassId
 	querySet.Version = &WSAVersion{
 		Version:                  12,
 		EnumerationOfComparision: 1,
 	}
 	comment := "comment"
 	querySet.Comment = &comment
+
+	nsProviderId, _ := windows.GUIDFromString("495353-43fe-7d4a-e58f-a99fafd205e4")
+	querySet.NSProviderId = &nsProviderId
+	context := "context"
+	querySet.Context = &context
+	querySet.NumberOfProtocols = 123
+	querySet.AfpProtocols = &AFProtocols{
+		AddressFamily: 13,
+		Protocol:      300,
+	}
+	queryString := "query"
+	querySet.QueryString = &queryString
+	querySet.NumberOfCsAddrs = 11111
+	querySet.SaBuffer = &AddrInfo{
+		SocketType: 14,
+		Protocol:   300,
+		RemoteAddr: SocketAddress{
+			Sockaddr:       &sockaddr{},
+			SockaddrLength: 10,
+		},
+	}
+	querySet.OutputFlags = 100
+	querySet.Blob = &BLOB{
+		Size: 10,
+	}
 	querySet.Size = uint32(sz)
 	var asByteSlice []byte = (*(*[sz]byte)(unsafe.Pointer(&querySet)))[:]
 	for _, d := range asByteSlice {
@@ -36,6 +77,13 @@ func TestIt(t *testing.T) {
 	var asByteSlice2 []byte = (*(*[int(unsafe.Sizeof(querySet.ServiceInstanceName))]byte)(unsafe.Pointer(&querySet.ServiceInstanceName)))[:]
 	fmt.Print("ServiceInstanceName: ")
 	for _, d := range asByteSlice2 {
+		fmt.Printf("%02x ", d)
+	}
+	fmt.Print("\n")
+
+	var asByteSlice2a []byte = (*(*[int(unsafe.Sizeof(querySet.ServiceClassId))]byte)(unsafe.Pointer(&querySet.ServiceClassId)))[:]
+	fmt.Print("ServiceClassId: ")
+	for _, d := range asByteSlice2a {
 		fmt.Printf("%02x ", d)
 	}
 	fmt.Print("\n")

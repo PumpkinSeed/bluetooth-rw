@@ -1,0 +1,103 @@
+--start-- Query set main
+78 00 00 00 00 00 00 00 57 fd bf 34 88 00 00 00 d0 4c 8a f6 f7 7f 00 00 4c fd bf 34 88 00 00 00 4b fd bf 34 88 00 00 00 10 00 00 00 00 00 00 00 c0 4c 8a f6 f7 7f 00 00 4a fd bf 34 88 00 00 00 14 e2 01 00 00 00 00 00 58 fd bf 34 88 00 00 00 49 fd bf 34 88 00 00 00 14 e2 01 00 00 00 00 00 20 fd bf 34 88 00 00 00 14 e2 01 00 00 00 00 00 00 fd bf 34 88 00 00 00 
+--end-- Query set main
+--start-- Query set -> dwSize
+78 00 00 00 
+--end-- Query set -> dwSize
+--start-- Query set -> lpszServiceInstanceName
+57 fd bf 34 88 00 00 00 
+--end-- Query set -> lpszServiceInstanceName
+--start-- Query set -> lpServiceClassId
+d0 4c 8a f6 f7 7f 00 00 
+--end-- Query set -> lpServiceClassId
+--start-- Query set -> lpVersion
+4c fd bf 34 88 00 00 00 
+--end-- Query set -> lpVersion
+--start-- Query set -> lpszComment
+4b fd bf 34 88 00 00 00 
+--end-- Query set -> lpszComment
+--start-- Query set -> dwNameSpace
+10 00 00 00 
+--end-- Query set -> dwNameSpace
+--start-- Query set -> lpNSProviderId
+c0 4c 8a f6 f7 7f 00 00 
+--end-- Query set -> lpNSProviderId
+--start-- Query set -> lpszContext
+4a fd bf 34 88 00 00 00 
+--end-- Query set -> lpszContext
+--start-- Query set -> dwNumberOfProtocols
+14 e2 01 00 
+--end-- Query set -> dwNumberOfProtocols
+--start-- Query set -> lpafpProtocols
+58 fd bf 34 88 00 00 00 
+--end-- Query set -> lpafpProtocols
+--start-- Query set -> lpszQueryString
+49 fd bf 34 88 00 00 00 
+--end-- Query set -> lpszQueryString
+--start-- Query set -> dwNumberOfCsAddrs
+14 e2 01 00 
+--end-- Query set -> dwNumberOfCsAddrs
+--start-- Query set -> lpcsaBuffer
+20 fd bf 34 88 00 00 00
+--end-- Query set -> lpcsaBuffer
+--start-- Query set -> dwOutputFlags
+14 e2 01 00
+--end-- Query set -> dwOutputFlags
+--start-- Query set -> lpBlob
+00 fd bf 34 88 00 00 00
+--end-- Query set -> lpBlob
+
+----------------------------------------
+Analyze:
+78 00 00 00 00 00 00 00     - dwSize
+57 fd bf 34 88 00 00 00     - lpszServiceInstanceName
+d0 4c 8a f6 f7 7f 00 00     - lpServiceClassId
+4c fd bf 34 88 00 00 00     - lpVersion
+4b fd bf 34 88 00 00 00     - lpszComment
+10 00 00 00 00 00 00 00     - dwNameSpace
+c0 4c 8a f6 f7 7f 00 00     - lpNSProviderId
+4a fd bf 34 88 00 00 00     - lpszContext
+14 e2 01 00 00 00 00 00     - dwNumberOfProtocols
+58 fd bf 34 88 00 00 00     - lpafpProtocols
+49 fd bf 34 88 00 00 00     - lpszQueryString
+14 e2 01 00 00 00 00 00     - dwNumberOfCsAddrs
+20 fd bf 34 88 00 00 00     - lpcsaBuffer
+14 e2 01 00 00 00 00 00     - dwOutputFlags
+00 fd bf 34 88 00 00 00     - lpBlob
+
+-----------------------------------------
+Go:
+
+78 00 00 00 00 00 00 00 78 5b 06 00 c0 00 00 00 18 5b 06 00 c0 00 00 00 58 5b 06 00 c0 00 00 00 a8 5b 06 00 c0 00 00 00 10 00 00 00 00 00 00 00 28 5b 06 00 c0 00 00 00 98 5b 06 00 c0 00 00 00 7b 00 00 00 00 00 00 00 48 5b 06 00 c0 00 00 00 88 5b 06 00 c0 00 00 00 67 2b 00 00 00 00 00 00 b8 5e 06 00 c0 00 00 00 64 00 00 00 00 00 00 00 a8 5e 06 00 c0 00 00 00
+Size: 78 00 00 00
+ServiceInstanceName: 78 5b 06 00 c0 00 00 00
+ServiceClassId: 18 5b 06 00 c0 00 00 00
+Version: 58 5b 06 00 c0 00 00 00
+Comment: a8 5b 06 00 c0 00 00 00
+NameSpace: 10 00 00 00
+NSProviderId: 28 5b 06 00 c0 00 00 00
+Context: 98 5b 06 00 c0 00 00 00
+NumberOfProtocols: 7b 00 00 00
+AfpProtocols: 48 5b 06 00 c0 00 00 00
+QueryString: 88 5b 06 00 c0 00 00 00
+NumberOfCsAddrs: 67 2b 00 00
+SaBuffer: b8 5e 06 00 c0 00 00 00
+OutputFlags: 64 00 00 00
+Blob: a8 5e 06 00 c0 00 00 00
+
+Analyze: 
+78 00 00 00 00 00 00 00 // Size
+78 5b 06 00 c0 00 00 00 // ServiceInstanceName
+18 5b 06 00 c0 00 00 00 // ServiceClassId
+58 5b 06 00 c0 00 00 00 // Version
+a8 5b 06 00 c0 00 00 00 // Comment
+10 00 00 00 00 00 00 00 // NameSpace
+28 5b 06 00 c0 00 00 00 // NSProviderId
+98 5b 06 00 c0 00 00 00 // Context
+7b 00 00 00 00 00 00 00 // NumberOfProtocols
+48 5b 06 00 c0 00 00 00 // AfpProtocols
+88 5b 06 00 c0 00 00 00 // QueryString
+67 2b 00 00 00 00 00 00 // NumberOfCsAddrs
+b8 5e 06 00 c0 00 00 00 // SaBuffer
+64 00 00 00 00 00 00 00 // OutputFlags
+a8 5e 06 00 c0 00 00 00 // Blob
