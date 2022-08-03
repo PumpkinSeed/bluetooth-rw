@@ -9,7 +9,7 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-func Scan(q WSAQUERYSET) error {
+func Scan() error {
 	var flags uint32 = LUP_CONTAINERS
 	flags |= LUP_RETURN_NAME
 	flags |= LUP_RETURN_ADDR
@@ -29,6 +29,7 @@ func Scan(q WSAQUERYSET) error {
 		err := WSALookupServiceNext(handle, flags, &size, &querySet)
 		if err != nil {
 			if strings.Contains(err.Error(), "No more results") {
+				fmt.Printf("WSALookupServiceNext: %s\n", err.Error())
 				break
 			}
 			fmt.Printf("WSALookupServiceNext: %s\n", err.Error())
