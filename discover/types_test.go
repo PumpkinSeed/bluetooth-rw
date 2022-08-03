@@ -107,7 +107,7 @@ func TestIt(t *testing.T) {
 	const sz = int(unsafe.Sizeof(WSAQUERYSET{}))
 	var querySet WSAQUERYSET
 	querySet.NameSpace = 16
-	var serviceInstanceName CString
+	var serviceInstanceName Wchar
 	querySet.ServiceInstanceName = serviceInstanceName
 
 	serviceClassId, _ := windows.GUIDFromString("495353-43fe-7d4a-e58f-a99fafd205e4")
@@ -116,20 +116,20 @@ func TestIt(t *testing.T) {
 		Version:                  12,
 		EnumerationOfComparision: 1,
 	}
-	comment := "comment"
-	querySet.Comment = &comment
+	var comment Wchar
+	querySet.Comment = comment
 
 	nsProviderId, _ := windows.GUIDFromString("495353-43fe-7d4a-e58f-a99fafd205e4")
 	querySet.NSProviderId = &nsProviderId
-	context := "context"
-	querySet.Context = &context
+	var context Wchar
+	querySet.Context = context
 	querySet.NumberOfProtocols = 123
 	querySet.AfpProtocols = &AFProtocols{
 		AddressFamily: 13,
 		Protocol:      300,
 	}
-	queryString := "query"
-	querySet.QueryString = &queryString
+	var queryString Wchar
+	querySet.QueryString = queryString
 	querySet.NumberOfCsAddrs = 11111
 	querySet.SaBuffer = &AddrInfo{
 		SocketType: 14,

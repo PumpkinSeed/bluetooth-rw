@@ -1,55 +1,45 @@
 package discover
 
 import (
+	"unicode/utf16"
+	"unsafe"
+
 	"golang.org/x/sys/windows"
 )
-
-type Wchar uint16
 
 // https://docs.microsoft.com/en-us/windows/win32/api/winsock2/ns-winsock2-wsaquerysetw
 type WSAQUERYSET struct {
 	Size                uint32
-	ServiceInstanceName CString
+	ServiceInstanceName Wchar
 	ServiceClassId      *windows.GUID
 	Version             *WSAVersion
-	Comment             *string
+	Comment             Wchar
 	NameSpace           uint32
 	NSProviderId        *windows.GUID
-	Context             *string
+	Context             Wchar
 	NumberOfProtocols   uint32
 	AfpProtocols        *AFProtocols
-	QueryString         *string
+	QueryString         Wchar
 	NumberOfCsAddrs     uint32
 	SaBuffer            *AddrInfo
 	OutputFlags         uint32
 	Blob                *BLOB
 }
 
-func NewWSAQUERYSET() WSAQUERYSET {
-	var serviceInstanceName CString
-	var comment string
-	var context string
-	var queryString string
+func (w WSAQUERYSET) ServiceInstanceNameToString() string {
+	return WcharToString(w.ServiceInstanceName)
+}
 
-	return WSAQUERYSET{
-		ServiceInstanceName: serviceInstanceName,
-		ServiceClassId:      &windows.GUID{},
-		Version:             &WSAVersion{},
-		Comment:             &comment,
-		NSProviderId:        &windows.GUID{},
-		Context:             &context,
-		AfpProtocols:        &AFProtocols{},
-		QueryString:         &queryString,
-		SaBuffer: &AddrInfo{
-			LocalAddr: SocketAddress{
-				Sockaddr: &Sockaddr{},
-			},
-			RemoteAddr: SocketAddress{
-				Sockaddr: &Sockaddr{},
-			},
-		},
-		Blob: &BLOB{},
-	}
+func (w WSAQUERYSET) CommentToString() string {
+	return WcharToString(w.Comment)
+}
+
+func (w WSAQUERYSET) ContextToString() string {
+	return WcharToString(w.Context)
+}
+
+func (w WSAQUERYSET) QueryStringToString() string {
+	return WcharToString(w.QueryString)
 }
 
 // https://docs.microsoft.com/en-us/windows/win32/api/winsock2/ns-winsock2-wsaversion
@@ -88,4 +78,20 @@ type AddrInfo struct {
 type BLOB struct {
 	Size     uint32
 	BlobData *byte // TODO how to represent a block of data in Go?
+}
+
+type Wchar *uint16
+
+func WcharToString(w Wchar) string {
+	if w != nil {
+		us := make([]uint16, 0, 256)
+		for p := uintptr(unsafe.Pointer(w)); ; p += 2 {
+			u := *(*uint16)(unsafe.Pointer(p))
+			if u == 0 {
+				return string(utf16.Decode(us))
+			}
+			us = append(us, u)
+		}
+	}
+	return ""
 }
