@@ -1,3 +1,10 @@
+test start
+WSALookupServiceNext: The system detected an invalid pointer address in attempting to use a pointer argument in a call.
+D135-1890007561 -> d2cd7f2d8154
+nuraphone 220 -> ca7521e01a74
+WSALookupServiceNext: No more results can be returned by WSALookupServiceNext.
+start of wait in the Scan function
+finish wait in the Scan function
 Exception 0xc0000005 0x8 0x0 0x0
 PC=0x0
 
