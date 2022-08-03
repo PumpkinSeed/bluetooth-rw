@@ -3,6 +3,7 @@ package discover
 import (
 	"fmt"
 	"strings"
+	"time"
 	"unsafe"
 
 	"golang.org/x/sys/windows"
@@ -41,7 +42,11 @@ func Scan(q WSAQUERYSET) error {
 		return fmt.Errorf("WSALookupServiceEnd: %s", err.Error())
 	}
 
-	return windows.Close(handle)
+	err = windows.Close(handle)
+	fmt.Println("start of wait in the Scan function")
+	time.Sleep(2 * time.Second)
+	fmt.Println("finish wait in the Scan function")
+	return err
 }
 
 func recvDevice(querySet *WSAQUERYSET) {
