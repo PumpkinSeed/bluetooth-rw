@@ -67,12 +67,18 @@ func WSALookupServiceBegin(querySet *WSAQUERYSET, flags uint32, handle *windows.
 	return nil
 }
 
-func WSALookupServiceNext(handle windows.Handle, flags uint32, size *int32, q *WSAQUERYSET) error {
-	r, _, errNo := syscall.SyscallN(procWSALookupServiceNext.Addr(), uintptr(handle), uintptr(flags), uintptr(unsafe.Pointer(size)), uintptr(unsafe.Pointer(q)))
+func WSALookupServiceNext(handle windows.Handle, flags uint32, size int32, q *WSAQUERYSET) (int32, error) {
+	var sizeInner int32 = 0
+	//sizeInner = size
+
+	var sizePtr = &sizeInner
+
+	r, _, errNo := syscall.SyscallN(procWSALookupServiceNext.Addr(), uintptr(handle), uintptr(flags), uintptr(unsafe.Pointer(sizePtr)), uintptr(unsafe.Pointer(q)))
 	if r == socket_error {
-		return errnoErr(errNo)
+		return sizeInner, errnoErr(errNo)
 	}
-	return nil
+
+	return sizeInner, nil
 }
 
 func WSALookupServiceEnd(handle windows.Handle) error {

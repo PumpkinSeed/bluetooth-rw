@@ -26,7 +26,7 @@ func Scan() error {
 
 	var size = int32(unsafe.Sizeof(WSAQUERYSET{}))
 	for i := 0; i < 5; i++ {
-		err := WSALookupServiceNext(handle, flags, &size, &querySet)
+		size, err = WSALookupServiceNext(handle, flags, size, &querySet)
 		if err != nil {
 			if strings.Contains(err.Error(), "No more results") {
 				fmt.Printf("WSALookupServiceNext: %s\n", err.Error())
@@ -51,6 +51,9 @@ func Scan() error {
 }
 
 func recvDevice(querySet *WSAQUERYSET) {
+	if querySet == nil {
+		return
+	}
 	if querySet.ServiceInstanceName != nil {
 		var addr string
 		for _, e := range querySet.SaBuffer.RemoteAddr.Sockaddr.Data {
