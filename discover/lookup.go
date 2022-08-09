@@ -67,15 +67,19 @@ func WSALookupServiceBegin(querySet *WSAQUERYSET, flags uint32, handle *windows.
 	return nil
 }
 
-func WSALookupServiceNext(handle windows.Handle, flags uint32, size int32, querySet *WSAQUERYSET) (WSAQUERYSET, error) {
-	var q WSAQUERYSET
-
-	r, _, errNo := syscall.SyscallN(procWSALookupServiceNext.Addr(), uintptr(handle), uintptr(flags), uintptr(unsafe.Pointer(&size)), uintptr(unsafe.Pointer(&querySet)))
+func WSALookupServiceNext(handle windows.Handle, flags uint32, size *int32) (WSAQUERYSET, error) {
+	var data = initializeWSAQUERYSET()
+	r, _, errNo := syscall.SyscallN(procWSALookupServiceNext.Addr(), uintptr(handle), uintptr(flags), uintptr(unsafe.Pointer(size)), uintptr(unsafe.Pointer(data)))
 	if r == socket_error {
 		return WSAQUERYSET{}, errnoErr(errNo)
 	}
 
-	return q, nil
+	var ret WSAQUERYSET
+	if data != nil {
+		ret = *data
+	}
+
+	return ret, nil
 }
 
 func WSALookupServiceEnd(handle windows.Handle) error {
@@ -84,6 +88,40 @@ func WSALookupServiceEnd(handle windows.Handle) error {
 		return errnoErr(errNo)
 	}
 	return nil
+}
+
+func initializeWSAQUERYSET() *WSAQUERYSET {
+	var serviceInstanceName = new(uint16)
+	var serviceClassId = new(windows.GUID)
+	var version = new(WSAVersion)
+	var nsProviderId = new(windows.GUID)
+	var comment = new(uint16)
+	var context = new(uint16)
+	var afpProtocols = new(AFProtocols)
+	var queryString = new(uint16)
+	var saBuffer = &AddrInfo{
+		LocalAddr: SocketAddress{
+			Sockaddr: &Sockaddr{},
+		},
+		RemoteAddr: SocketAddress{
+			Sockaddr: &Sockaddr{},
+		},
+	}
+	var blob = &BLOB{
+		BlobData: new(byte),
+	}
+	return &WSAQUERYSET{
+		ServiceInstanceName: serviceInstanceName,
+		ServiceClassId:      serviceClassId,
+		Version:             version,
+		NSProviderId:        nsProviderId,
+		Comment:             comment,
+		Context:             context,
+		AfpProtocols:        afpProtocols,
+		QueryString:         queryString,
+		SaBuffer:            saBuffer,
+		Blob:                blob,
+	}
 }
 
 func errnoErr(e syscall.Errno) error {

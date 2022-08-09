@@ -10,16 +10,16 @@ import (
 // https://docs.microsoft.com/en-us/windows/win32/api/winsock2/ns-winsock2-wsaquerysetw
 type WSAQUERYSET struct {
 	Size                uint32
-	ServiceInstanceName Wchar
+	ServiceInstanceName *uint16
 	ServiceClassId      *windows.GUID
 	Version             *WSAVersion
-	Comment             Wchar
+	Comment             *uint16
 	NameSpace           uint32
 	NSProviderId        *windows.GUID
-	Context             Wchar
+	Context             *uint16
 	NumberOfProtocols   uint32
 	AfpProtocols        *AFProtocols
-	QueryString         Wchar
+	QueryString         *uint16
 	NumberOfCsAddrs     uint32
 	SaBuffer            *AddrInfo
 	OutputFlags         uint32
@@ -27,19 +27,19 @@ type WSAQUERYSET struct {
 }
 
 func (w WSAQUERYSET) ServiceInstanceNameToString() string {
-	return WcharToString(w.ServiceInstanceName)
+	return RawPointerToString(w.ServiceInstanceName)
 }
 
 func (w WSAQUERYSET) CommentToString() string {
-	return WcharToString(w.Comment)
+	return RawPointerToString(w.Comment)
 }
 
 func (w WSAQUERYSET) ContextToString() string {
-	return WcharToString(w.Context)
+	return RawPointerToString(w.Context)
 }
 
 func (w WSAQUERYSET) QueryStringToString() string {
-	return WcharToString(w.QueryString)
+	return RawPointerToString(w.QueryString)
 }
 
 // https://docs.microsoft.com/en-us/windows/win32/api/winsock2/ns-winsock2-wsaversion
@@ -80,9 +80,7 @@ type BLOB struct {
 	BlobData *byte // TODO how to represent a block of data in Go?
 }
 
-type Wchar *uint16
-
-func WcharToString(w Wchar) string {
+func RawPointerToString(w *uint16) string {
 	if w != nil {
 		us := make([]uint16, 0, 256)
 		for p := uintptr(unsafe.Pointer(w)); ; p += 2 {

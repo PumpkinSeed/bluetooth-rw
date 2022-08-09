@@ -27,7 +27,7 @@ func Scan() error {
 	var size = int32(unsafe.Sizeof(WSAQUERYSET{}))
 	for i := 0; i < 5; i++ {
 		var q WSAQUERYSET
-		q, err = WSALookupServiceNext(handle, flags, size, &querySet)
+		q, err = WSALookupServiceNext(handle, flags, &size)
 		if err != nil {
 			if strings.Contains(err.Error(), "No more results") {
 				fmt.Printf("WSALookupServiceNext: %s\n", err.Error())
@@ -44,7 +44,6 @@ func Scan() error {
 		return fmt.Errorf("WSALookupServiceEnd: %s", err.Error())
 	}
 
-	//err = windows.Close(handle)
 	fmt.Println("start of wait in the Scan function")
 	time.Sleep(2 * time.Second)
 	fmt.Println("finish wait in the Scan function")
@@ -64,4 +63,5 @@ func recvDevice(querySet *WSAQUERYSET) {
 		}
 		fmt.Printf("%s -> %s\n", querySet.ServiceInstanceNameToString(), string(addr))
 	}
+	return
 }
